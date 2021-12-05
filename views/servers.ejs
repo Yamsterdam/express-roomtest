@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Server Browser</title>
+    <script src="../../socket.io/socket.io.js"></script>
+    <script src="http://code.jquery.com/jquery-1.10.1.min.js"></script>
+    <link rel="preconnect" href="https://fonts.gstatic.com" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+      }
+      body {
+        background-color: #f5f5f5;
+        width: 100vw;
+        height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-direction: column;
+      }
+      .serverContainer {
+        width: 1000px;
+        height: 500px;
+        background-color: #e6e6e6;
+        box-shadow: 5px 10px #777777;
+        display: inline-grid;
+        grid-template-columns: 1fr 1fr;
+        overflow: auto;
+      }
+      .titleContainer {
+        color: #444444;
+        font-family: "Noto Sans JP", sans-serif;
+        user-select: none;
+        text-align: left;
+        width: 1000px;
+      }
+      .title {
+        font-size: 5rem;
+      }
+      .subtitle {
+        font-size: 2rem;
+      }
+      .serverEntry {
+        margin: 10px;
+        float: left;
+        background-color: #d9d9d9;
+        box-shadow: 5px 10px #777777;
+        width: 470px;
+        height: 104px;
+      }
+      .roomName {
+        color: #444444;
+        font-family: "Noto Sans JP", sans-serif;
+        font-weight: normal;
+        text-align: left;
+        font-size: 1.5rem;
+        margin-left: 10px;
+      }
+
+      .playerCount {
+        color: #444444;
+        font-family: "Noto Sans JP", sans-serif;
+        font-weight: normal;
+        text-align: left;
+        font-size: 1.25rem;
+        margin-left: 10px;
+      }
+
+      .joinRoomBtn {
+        display: flex;
+        color: #444444;
+        font-family: "Noto Sans JP", sans-serif;
+        font-size: 1rem;
+        width: 82px;
+        float: right;
+        background-color: #d9d9d9;
+        padding: 0px 15px 2px 15px;
+        margin-right: 10px;
+        border: 2px #777 solid;
+        border-radius: 25px;
+        user-select: none;
+      }
+    </style>
+  </head>
+  <body>
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      x="0px"
+      y="0px"
+      width="75"
+      height="75"
+      viewBox="0 0 172 172"
+      style="fill: #000000; position: fixed; left: 0; top: 0"
+      onclick="goBack()"
+    >
+      <g
+        fill="none"
+        fill-rule="nonzero"
+        stroke="none"
+        stroke-width="1"
+        stroke-linecap="butt"
+        stroke-linejoin="miter"
+        stroke-miterlimit="10"
+        stroke-dasharray=""
+        stroke-dashoffset="0"
+        font-family="none"
+        font-weight="none"
+        font-size="none"
+        text-anchor="none"
+        style="mix-blend-mode: normal"
+      >
+        <path d="M0,172v-172h172v172z" fill="none"></path>
+        <g fill="#444444">
+          <path
+            d="M86,17.2c-37.9948,0 -68.8,30.8052 -68.8,68.8c0,37.9948 30.8052,68.8 68.8,68.8c37.9948,0 68.8,-30.8052 68.8,-68.8c0,-37.9948 -30.8052,-68.8 -68.8,-68.8zM86,28.66667c31.6652,0 57.33333,25.66813 57.33333,57.33333c0,31.6652 -25.66813,57.33333 -57.33333,57.33333c-31.6652,0 -57.33333,-25.66813 -57.33333,-57.33333c0,-31.6652 25.66813,-57.33333 57.33333,-57.33333zM80.26667,57.33333c-1.46773,0 -2.93564,0.56169 -4.05364,1.67969l-22.93333,22.93333c-2.24173,2.24173 -2.24173,5.86556 0,8.10729l22.93333,22.93333c2.24173,2.24173 5.86556,2.24173 8.10729,0c2.24173,-2.24173 2.24173,-5.86556 0,-8.10729l-13.14636,-13.14636h43.49271c3.1648,0 5.73333,-2.5628 5.73333,-5.73333c0,-3.17053 -2.56853,-5.73333 -5.73333,-5.73333h-43.49271l13.14636,-13.14636c2.24173,-2.24173 2.24173,-5.86556 0,-8.10729c-1.118,-1.118 -2.58591,-1.67969 -4.05364,-1.67969z"
+          ></path>
+        </g>
+      </g>
+    </svg>
+    <h1 class="titleContainer">
+      <span class="title">Placeholder!</span>
+      <span class="subTitle"> server browser</span>
+    </h1>
+
+    <div id="serverContainer" class="serverContainer"></div>
+    <script>
+      var socket = io.connect("http://localhost:8080");
+      $.get("/getrooms", function (data) {
+        let rooms = data.rooms;
+        console.log(rooms);
+        for (const [key, value] of Object.entries(rooms)) {
+          var element = document.createElement("div");
+          element.classList.add("serverEntry");
+
+          var title = document.createElement("h1");
+          title.classList.add("roomName");
+          title.appendChild(document.createTextNode(key));
+          element.appendChild(title);
+
+          var playerCount = document.createElement("h2");
+          playerCount.classList.add("playerCount");
+          playerCount.appendChild(document.createTextNode("0/10"));
+          element.appendChild(playerCount);
+
+          var joinRoomBtn = document.createElement("h1");
+          joinRoomBtn.classList.add("joinRoomBtn");
+          joinRoomBtn.appendChild(document.createTextNode("Join Room"));
+          joinRoomBtn.setAttribute("onclick", "redirect(" + value + ")");
+          element.appendChild(joinRoomBtn);
+
+          document.getElementById("serverContainer").appendChild(element);
+        }
+      });
+
+      socket.on("redirect", function (destination) {
+        window.location.href = destination;
+      });
+
+      function redirect(id) {
+        socket.emit("joinRoom", id, location.pathname);
+      }
+
+      function goBack() {
+        socket.emit("home", location.pathname);
+      }
+      socket.on("redirect", function (destination) {
+        window.location.href = destination;
+      });
+    </script>
+  </body>
+</html>

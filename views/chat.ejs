@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Chat App</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        color: #1a1a1a;
+      }
+      body {
+        font: 13px arial;
+        background-color: #f5f5f5;
+        display: grid;
+        width: 100vw;
+        height: 100vh;
+        grid-template-columns: 1fr 1fr 1fr;
+        grid-template-rows: 93% auto;
+        grid-template-areas:
+          ". . chat"
+          ". . form";
+      }
+
+      #typing {
+        visibility: hidden;
+      }
+
+      form {
+        background-color: #f2f2f2;
+        padding: 3px;
+        grid-area: form;
+        height: 7vh;
+        border: #cccccc 2px solid;
+      }
+      form input {
+        border: none;
+        padding: 10px;
+        width: 80%;
+        margin-right: 0.5%;
+        background: #e6e6e6;
+        border: #cccccc 2px solid;
+        border-radius: 20px;
+        font-family: "Noto Sans JP", sans-serif;
+      }
+      form input:focus {
+        outline: none;
+      }
+
+      form input::placeholder {
+        color: #444;
+      }
+      form button {
+        width: 16%;
+        background: #e6e6e6;
+        border: #cccccc 2px solid;
+        padding: 10px;
+        margin-left: 2%;
+        border-radius: 20px;
+        font-family: "Noto Sans JP", sans-serif;
+      }
+      #message {
+        margin: 0;
+        padding: 0;
+        height: 100%;
+        width: 100%;
+        grid-area: chat;
+        border: #cccccc 2px solid;
+        border-bottom: none;
+        background-color: #f2f2f2;
+        font-family: "Noto Sans JP", sans-serif;
+      }
+      #messages {
+        list-style-type: none;
+        margin: 0;
+        padding: 0;
+        font-family: "Noto Sans JP", sans-serif;
+      }
+      #messages li {
+        padding: 5px 10px;
+      }
+      #messages li:nth-child(odd) {
+        background: #e6e6e6;
+      }
+      #infoBox {
+        position: fixed;
+        padding: 4px;
+        padding-right: 2rem;
+        font-family: "Noto Sans JP", sans-serif;
+      }
+      h1 {
+        color: #444;
+      }
+      h2 {
+        color: #444;
+      }
+    </style>
+    <script src="../../socket.io/socket.io.js"></script>
+    <script src="http://code.jquery.com/jquery-1.10.1.min.js"></script>
+    <link rel="preconnect" href="https://fonts.gstatic.com" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    <div id="infoBox">
+      <h1><%= roomName %></h1>
+      <h2><%= roomID %></h2>
+    </div>
+    <div id="message"><ul id="messages"></ul></div>
+    <form action="/" method="POST" id="chatForm">
+      <p id="typing">null is typing</p>
+      <input
+        id="txt"
+        autocomplete="off"
+        autofocus="on"
+        oninput="isTyping()"
+        placeholder="type your message here..."
+      /><button>Send</button>
+    </form>
+    <script>
+      var opts = {};
+      opts["sync disconnect on unload"] = false;
+      var socket = io.connect("http://localhost:8080", opts);
+
+      $("form").submit(function (e) {
+        e.preventDefault();
+        socket.emit("chat_message", $("#txt").val(), location.pathname);
+        $("#txt").val("");
+        return false;
+      });
+
+      socket.on("connect", function () {
+        socket.emit("join", location.pathname);
+      });
+
+      socket.on("chat_message", function (msg) {
+        $("#messages").append($("<li>").html(msg));
+      });
+
+      socket.on("is_online", function (username) {
+        $("#messages").append($("<li>").html(username));
+      });
+
+      socket.on("type", function (guyTyping) {
+        $("#typing").css("visibility", "visible");
+        $("#typing").html(guyTyping);
+        stopType = setTimeout(function () {
+          $("#typing").css("visibility", "hidden");
+        }, 3000);
+      });
+
+      var username = prompt("Please tell me your name");
+      socket.emit("username", username, location.pathname);
+
+      $(document).ready(function () {
+        window.addEventListener("beforeunload", async function (event) {
+          await socket.emit("user_left", "test", location.pathname);
+          console.log("testing");
+        });
+        window.addEventListener("unload", function (e) {
+          console.log("I am the 1st one.");
+        });
+      });
+
+      function isTyping() {
+        socket.emit("typing", username, location.pathname);
+      }
+    </script>
+  </body>
+</html>

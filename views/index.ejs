@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Home</title>
+    <script src="../../socket.io/socket.io.js"></script>
+    <script src="http://code.jquery.com/jquery-1.10.1.min.js"></script>
+    <link rel="preconnect" href="https://fonts.gstatic.com" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+      }
+      body {
+        background-color: #f5f5f5;
+        width: 100vw;
+        height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-direction: column;
+      }
+      .title {
+        color: #444444;
+        font-size: 5rem;
+        font-family: "Noto Sans JP", sans-serif;
+        user-select: none;
+        text-align: left;
+        width: 800px;
+      }
+      .btn {
+        text-decoration: none;
+        font-size: 3em;
+        font-family: "Noto Sans JP", sans-serif;
+        user-select: none;
+        font-weight: lighter;
+        color: #444;
+        background-color: #e6e6e6;
+        box-shadow: 5px 10px #777777;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 800px;
+        margin-top: 40px;
+        border-radius: 25px;
+      }
+      #code::placeholder {
+        color: rgba(68, 68, 68, 0.8);
+      }
+      #code {
+        border: none;
+        font-size: 3.5rem;
+        text-align: center;
+        color: #444;
+        background-color: transparent;
+        width: 800px;
+      }
+      #code:focus {
+        outline: none;
+      }
+
+      .version {
+        color: #444444;
+        font-size: 2rem;
+        font-family: "Noto Sans JP", sans-serif;
+        user-select: none;
+      }
+    </style>
+  </head>
+  <body>
+    <h1 class="title">Placeholder! <span class="version">v1.0</span></h1>
+    <form action="/" method="POST" id="joinForm" class="joinRoom btn">
+      <input
+        id="code"
+        autocomplete="off"
+        type="text"
+        placeholder="Enter Room Code"
+        minlength="6"
+        maxlength="6"
+        size="6"
+        oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1');"
+      />
+    </form>
+    <h1 class="hostRoom btn" onclick="createRoom()">Host Room</h1>
+    <h1 class="browse btn" onclick="browseSever()">Server Browser</h1>
+    <script>
+      var socket = io.connect("http://localhost:8080");
+      function createRoom() {
+        var roomName = prompt("Enter room name");
+        socket.emit("createRoom", roomName, location.pathname);
+      }
+
+      function browseSever() {
+        socket.emit("browse", location.pathname);
+      }
+
+      socket.on("exists", function () {
+        alert("Room already exists!");
+      });
+      socket.on("redirect", function (destination) {
+        window.location.href = destination;
+      });
+      $("form").submit(function (e) {
+        e.preventDefault();
+        socket.emit("joinCode", $("#code").val(), location.pathname);
+        $("#code").val("");
+      });
+    </script>
+  </body>
+</html>
